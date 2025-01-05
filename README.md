@@ -3,7 +3,7 @@
 調布市のオープンデータをもとにしたStreamlitの可視化アプリケーション
 
 ```
-$ streamlit run chofu_geo_folium.py
+$ streamlit run choufu_geo_folium.py
 ```
 
 # 調布市オープンデータ
