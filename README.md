@@ -2,6 +2,10 @@
 
 調布市のオープンデータをもとにしたStreamlitの可視化アプリケーション
 
+https://choufu-visualization.streamlit.app にdeployしています
+
+![イメージ](docs/application_screen_shot.png)
+
 ```
 $ streamlit run choufu_geo_folium.py
 ```
