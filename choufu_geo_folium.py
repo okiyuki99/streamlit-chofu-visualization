@@ -53,6 +53,7 @@ folium.Choropleth(
   legend_name="人口数",
 ).add_to(map)
 
+# ツールチップの可視化
 choropleth_info = folium.GeoJson(
   data=merged_df,
   style_function=STYLE_FUNC,
