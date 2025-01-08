@@ -7,7 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'utils'))
 from data_loader import load_data
 
 # GeoDataFrameとデータフレームをマージ
-merged_df = load_data()
+merged_df = load_data(file_path='data/chouchoubetu1201.xlsx', sheet_name='R6.12.1')
 
 st.set_page_config(
   page_title="調布市の人口ヒートマップ",
