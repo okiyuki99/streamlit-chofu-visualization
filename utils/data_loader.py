@@ -1,3 +1,4 @@
+import streamlit as st
 import pandas as pd
 import geopandas as gpd
 # pd.set_option('display.max_rows', None)
@@ -67,3 +68,14 @@ def read_choufu_population_excel_sheet(file_path, sheet_name=0):
     df['住所'] = df['住所'].str.replace('９', '九')
 
     return df
+
+def get_sheet_names(file_path):
+    """
+    Excelファイルからシート名を取得する関数
+    """
+
+    # Excelファイルからシート名を取得
+    xls = pd.ExcelFile(file_path)
+    sheet_names = xls.sheet_names
+    sheet_names.reverse()
+    return sheet_names

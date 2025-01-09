@@ -1,14 +1,18 @@
 import streamlit as st
+import json
 import folium
 from streamlit_folium import st_folium
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'utils'))
 from data_loader import load_data
+from data_loader import get_sheet_names
 
-# GeoDataFrameとデータフレームをマージ
-merged_df = load_data(file_path='data/chouchoubetu1201.xlsx', sheet_name='R6.12.1')
+# Excelファイルのパスを指定してsheet名を取得
+CHOUFU_POPULATION_DATA_FILE_PATH = 'data/chouchoubetu1201.xlsx'
+sheet_names = get_sheet_names(CHOUFU_POPULATION_DATA_FILE_PATH)
 
+# Streamlitのセットアップ
 st.set_page_config(
   page_title="調布市の人口ヒートマップ",
   page_icon="🗾",
@@ -21,13 +25,24 @@ st.markdown("""
 オープンデータをもとにした調布市の市区町村別の人口をヒートマップで可視化したアプリケーションです
 """)
 
+# Streamlitのセレクトボックスでシート名を選択
+selected_sheet = st.selectbox(
+  "表示する年代(シート)を選択してください",
+   sheet_names,
+   index=0
+)
+
+# セレクトボックスの選択をもとにGeoDataFrameを取得
+print(selected_sheet)
+merged_df = load_data(file_path=CHOUFU_POPULATION_DATA_FILE_PATH, sheet_name=selected_sheet)
+
 # mapの用意（佐須町二丁目を中心に）
 lat = 35.660076
 lon = 139.554033
 map = folium.Map(
-  location=(lat, lon),
-  tiles="cartodbpositron",
-  zoom_start=14
+    location=(lat, lon),
+    tiles="cartodbpositron",
+    zoom_start=14
 )
 
 STYLE_FUNC = lambda x: {'fillColor': '#ffffff', 
@@ -40,7 +55,7 @@ HIGHLIGHT_FUNC = lambda x: {'fillColor': '#000000',
                                 'weight': 0.1}
 
 # 可視化設定
-folium.Choropleth(
+choropleth = folium.Choropleth(
   geo_data=merged_df,
   data=merged_df,
   columns=["住所", "人口数"],
@@ -51,7 +66,8 @@ folium.Choropleth(
   nan_fill_opacity=0.8,
   line_opacity=0.2,
   legend_name="人口数",
-).add_to(map)
+)
+choropleth.add_to(map)
 
 # ツールチップの可視化
 choropleth_info = folium.GeoJson(
