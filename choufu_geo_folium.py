@@ -8,6 +8,19 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'utils'))
 from data_loader import load_data
 from data_loader import get_sheet_names
 
+STYLE_FUNC = lambda x: {
+  'fillColor': '#ffffff', 
+  'color':'#000000', 
+  'fillOpacity': 0.1, 
+  'weight': 0.1
+}
+HIGHLIGHT_FUNC = lambda x: {
+  'fillColor': '#000000', 
+  'color':'#000000', 
+  'fillOpacity': 0.50, 
+  'weight': 0.1
+}
+
 # Excelファイルのパスを指定してsheet名を取得
 CHOUFU_POPULATION_DATA_FILE_PATH = 'data/chouchoubetu1201.xlsx'
 sheet_names = get_sheet_names(CHOUFU_POPULATION_DATA_FILE_PATH)
@@ -32,27 +45,16 @@ selected_sheet = st.selectbox(
    index=0
 )
 
-# セレクトボックスの選択をもとにGeoDataFrameを取得
-print(selected_sheet)
 merged_df = load_data(file_path=CHOUFU_POPULATION_DATA_FILE_PATH, sheet_name=selected_sheet)
 
 # mapの用意（佐須町二丁目を中心に）
 lat = 35.660076
 lon = 139.554033
 map = folium.Map(
-    location=(lat, lon),
-    tiles="cartodbpositron",
-    zoom_start=14
+  location=(lat, lon),
+  tiles="cartodbpositron",
+  zoom_start=14
 )
-
-STYLE_FUNC = lambda x: {'fillColor': '#ffffff', 
-                            'color':'#000000', 
-                            'fillOpacity': 0.1, 
-                            'weight': 0.1}
-HIGHLIGHT_FUNC = lambda x: {'fillColor': '#000000', 
-                                'color':'#000000', 
-                                'fillOpacity': 0.50, 
-                                'weight': 0.1}
 
 # 可視化設定
 choropleth = folium.Choropleth(
