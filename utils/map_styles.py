@@ -21,5 +21,5 @@ TOOLTIP_STYLE = (
 
 # 中心地点ラベルのスタイル
 CENTER_LABEL_STYLE = (
-    'font-size: 10px; color: #999999; text-align: center;'
+    'font-size: 8px; color: #999999; text-align: center;'
 ) 

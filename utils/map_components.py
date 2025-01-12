@@ -1,6 +1,7 @@
 import folium
 from folium import Map, Choropleth, GeoJson, Marker, DivIcon, Icon
 from utils.map_styles import STYLE_FUNC, HIGHLIGHT_FUNC, TOOLTIP_STYLE, CENTER_LABEL_STYLE
+from utils.constants import STATIONS
 
 def create_base_map(lat: float, lon: float, zoom: int = 14) -> Map:
     """ベースとなる地図を作成"""
@@ -68,3 +69,35 @@ def add_school_markers(map_obj: Map, school_df: dict, color: str) -> None:
             ),
             tooltip=row['学校名']
         ).add_to(map_obj) 
+
+def add_station_marker(map_obj: Map) -> None:
+    """駅のマーカーを追加"""
+    for station_name, coords in STATIONS.items():
+        Marker(
+            location=[coords['lat'], coords['lon']],
+            popup=station_name,
+            icon=Icon(
+                color='green',
+                icon='train',
+                prefix='fa'
+            ),
+            tooltip=station_name
+        ).add_to(map_obj) 
+
+def add_area_labels(map_obj: Map, data: dict) -> None:
+    """各エリアの中心にラベルを表示"""
+    for idx, row in data.iterrows():
+        centroid = row.geometry.centroid
+        lat = centroid.y
+        lon = centroid.x
+        name = row['S_NAME']
+        
+        if lat and lon and name:
+            Marker(
+                [lat, lon],
+                icon=DivIcon(
+                    html=f'<div style="{CENTER_LABEL_STYLE}">{name}</div>',
+                    icon_size=(60, 15),
+                    icon_anchor=(30, 7)
+                )
+            ).add_to(map_obj) 
