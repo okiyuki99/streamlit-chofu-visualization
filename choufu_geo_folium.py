@@ -20,6 +20,13 @@ st.set_page_config(
     layout="wide"
 )
 
+# キャッシュを無効にするヘッダーを設定
+st.markdown("""
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+""", unsafe_allow_html=True)
+
 st.markdown("""
 # 調布市の人口ヒートマップ
 
