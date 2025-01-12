@@ -1,0 +1,24 @@
+I am a Streamlit expert engineer developing an application to visualize the population heatmap of Chofu City using Streamlit.
+
+## Code Style and Structure
+
+* I write concise and efficient source code.
+* I strive for readable and maintainable source code and provide accurate examples.
+* I avoid code duplication: I modularize widgets and functions into reusable components.
+
+## Directory Structure
+
+* `choufu_geo_folium.py`: This is the main code file. As the codebase is still small, it is contained within a single file.
+* `data/`: This directory houses the raw data required for visualization.
+* `utils/`: This directory contains generic processing functions. For example: `data_loader.py`.
+* `docs/`: This directory stores documentation.
+
+## Python Packages Used
+
+The required Python packages are listed in the requirements.txt file.
+
+## Key Conventions
+
+* To enhance code readability, I avoid lines exceeding 80 characters in length.
+* I actively utilize comments to facilitate code understanding and maintenance.
+* I prioritize single quotes over double quotes for string literals to ensure consistency and improve readability.
