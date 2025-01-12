@@ -26,13 +26,31 @@ st.markdown("""
 オープンデータをもとにした調布市の市区町村別の人口をヒートマップで可視化したアプリケーションです
 """)
 
-# シート名の取得と選択
-sheet_names = get_sheet_names(CHOUFU_POPULATION_DATA_FILE_PATH)
-selected_sheet = st.selectbox(
-    "表示する年代(シート)を選択してください",
-    sheet_names,
-    index=0
-)
+# 設定パネルの作成
+with st.sidebar:
+    st.header('📊 表示設定')
+    
+    # 年代選択
+    with st.expander('📅 年代の選択', expanded=True):
+        sheet_names = get_sheet_names(CHOUFU_POPULATION_DATA_FILE_PATH)
+        selected_sheet = st.selectbox(
+            "表示する年代を選択してください",
+            sheet_names,
+            index=0
+        )
+    
+    # 学校表示設定
+    with st.expander('🏫 学校の表示設定', expanded=True):
+        show_elementary_schools = st.checkbox(
+            '小学校を表示 🔴',
+            value=True,
+            help='小学校の位置を赤色のマーカーで表示します'
+        )
+        show_junior_high_schools = st.checkbox(
+            '中学校を表示 🔵',
+            value=True,
+            help='中学校の位置を青色のマーカーで表示します'
+        )
 
 # データの読み込みと地図の作成
 merged_df = load_data(file_path=CHOUFU_POPULATION_DATA_FILE_PATH, sheet_name=selected_sheet)
@@ -42,13 +60,6 @@ map = create_base_map(CENTER_LAT, CENTER_LON)
 add_center_label(map, CENTER_LAT, CENTER_LON, '佐須町二丁目')
 add_choropleth(map, merged_df, ["住所", "人口数"])
 add_tooltips(map, merged_df)
-
-# 学校表示のチェックボックス
-col1, col2 = st.columns(2)
-with col1:
-    show_elementary_schools = st.checkbox('小学校の位置を表示', value=False)
-with col2:
-    show_junior_high_schools = st.checkbox('中学校の位置を表示', value=False)
 
 # 学校マーカーの追加
 if show_elementary_schools:
