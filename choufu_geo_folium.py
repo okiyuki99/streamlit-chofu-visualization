@@ -58,6 +58,16 @@ map = folium.Map(
   zoom_start=14
 )
 
+# 中心地点のラベルを追加（DivIconを使用）
+folium.map.Marker(
+    [lat, lon],
+    icon=folium.DivIcon(
+        html='<div style="font-size: 10px; color: #999999; text-align: center;">佐須町二丁目</div>',
+        icon_size=(80, 20),
+        icon_anchor=(40, 10)
+    )
+).add_to(map)
+
 # 可視化設定
 choropleth = folium.Choropleth(
   geo_data=merged_df,
