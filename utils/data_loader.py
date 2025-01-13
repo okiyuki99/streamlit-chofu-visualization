@@ -115,12 +115,32 @@ def _convert_address_numbers(df: pd.DataFrame) -> pd.DataFrame:
     
     return df
 
-def get_sheet_names(file_path: Union[str, Path]) -> List[str]:
-    """Excelファイルのシート名を取得する"""
+def convert_to_readable_date(sheet_name: str) -> str:
+    """シート名を読みやすい形式に変換（例：R6.12.1 → 令和6年12月）"""
+    try:
+        if not sheet_name.startswith('R'):
+            return sheet_name
+        
+        # R6.12.1 形式を分解
+        year = sheet_name[1:].split('.')[0]
+        month = sheet_name[1:].split('.')[1]
+        
+        return f'令和{year}年{month}月'
+    except:
+        return sheet_name
+
+def get_sheet_names(file_path: Union[str, Path]) -> List[tuple[str, str]]:
+    """Excelファイルのシート名を取得する
+    
+    Returns:
+        List[tuple[str, str]]: (表示用シート名, 実際のシート名)のリスト
+    """
     xls = pd.ExcelFile(file_path)
     sheet_names = xls.sheet_names
     sheet_names.reverse()
-    return sheet_names
+    
+    # (表示用シート名, 実際のシート名)のタプルのリストを作成
+    return [(convert_to_readable_date(name), name) for name in sheet_names]
 
 def load_school_data(file_path: str, school_type: str = None) -> pd.DataFrame:
     """学校データを読み込む"""

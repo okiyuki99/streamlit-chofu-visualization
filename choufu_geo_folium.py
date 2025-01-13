@@ -40,11 +40,15 @@ with st.sidebar:
     # 年代選択
     with st.expander('📅 年代の選択', expanded=True):
         sheet_names = get_sheet_names(CHOUFU_POPULATION_DATA_FILE_PATH)
-        selected_sheet = st.selectbox(
+        display_names, actual_names = zip(*sheet_names)  # タプルのリストを2つのリストに分解
+        
+        selected_display = st.selectbox(
             "表示する年代を選択してください",
-            sheet_names,
+            display_names,
             index=0
         )
+        # 表示用の名前から実際のシート名を取得
+        selected_sheet = actual_names[display_names.index(selected_display)]
     
     # 学校表示設定
     with st.expander('🏫 学校の表示設定', expanded=True):
