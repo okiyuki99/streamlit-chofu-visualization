@@ -31,6 +31,10 @@ def load_data(sheet_info: str) -> gpd.GeoDataFrame:
     year, sheet_name = sheet_info.split(':')
     file_path = POPULATION_DATA_FILES[year]
     
+    # R4ファイルのR3.5.1シートをR4.5.1として扱う
+    if year == 'R4' and sheet_name == 'R4.5.1':
+        sheet_name = 'R3.5.1'
+    
     # GeoJSONから調布の市区町村データの読み込み
     jp_geo_df = gpd.read_file(DataPaths.GEOJSON_PATH)
 
@@ -52,25 +56,53 @@ def read_choufu_population_excel_sheet(
     sheet_name: Union[str, int] = 0
 ) -> pd.DataFrame:
     """調布市の町別の人口データを読み込む"""
-    # Excelファイルの読み込み
-    df = pd.read_excel(
-        file_path,
-        header=1,
-        index_col=0,
-        usecols=range(5),
-        sheet_name=sheet_name
-    )
+    # シート名から古いフォーマットかどうかを判定
+    is_old_format = False
+    if isinstance(sheet_name, str):
+        try:
+            year = int(sheet_name[1:].split('.')[0])  # "R3" から "3" を取得
+            month = int(sheet_name.split('.')[1])     # "3.1" から "3" を取得
+            # R6.3.1までは古いフォーマット
+            if year < 6 or (year == 6 and month <= 3):
+                is_old_format = True
+        except:
+            pass
     
-    # データのクリーニング
-    df = _clean_dataframe(df)
-    
-    # 数値データの変換
-    df = _convert_numeric_columns(df)
-    
-    # 住所の漢数字変換
-    df = _convert_address_numbers(df)
-    
-    return df
+    try:
+        if is_old_format:
+            # 古いフォーマット: 必要な列のみを明示的に指定
+            # B列（インデックス1）を除外し、A列とC列以降を使用
+            df = pd.read_excel(
+                file_path,
+                header=1,
+                sheet_name=sheet_name,
+                usecols=[0, 2, 3, 4, 5]  # A列とC列以降を使用
+            )
+            # 最初の列を住所列として設定し、NULLを削除してからインデックスに設定
+            df = df.rename(columns={df.columns[0]: ColumnNames.ADDRESS})
+            df = df[df[ColumnNames.ADDRESS].notna()]  # NULLの行を削除
+            df = df.set_index(ColumnNames.ADDRESS)
+        else:
+            # 新しいフォーマット: 従来通り
+            df = pd.read_excel(
+                file_path,
+                header=1,
+                index_col=0,
+                usecols=[0, 1, 2, 3, 4],
+                sheet_name=sheet_name
+            )
+
+        # データのクリーニング以降は変更なし
+        df = _clean_dataframe(df)
+        df = _convert_numeric_columns(df)
+        df = _convert_address_numbers(df)
+        
+        return df
+        
+    except Exception as e:
+        st.error(f'データの読み込みに失敗しました: {str(e)}')
+        st.error(f'ファイル: {file_path}, シート: {sheet_name}, フォーマット: {"旧" if is_old_format else "新"}')
+        raise e
 
 def _clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """データフレームの基本的なクリーニングを行う"""
@@ -132,7 +164,11 @@ def convert_to_readable_date(sheet_name: str) -> str:
         
         # R6.12.1 形式を分解
         year = sheet_name[1:].split('.')[0]
-        month = sheet_name[1:].split('.')[1]
+        month = sheet_name.split('.')[1]
+        
+        # 全角数字を半角数字に変換するマッピング
+        zen_to_han = str.maketrans('０１２３４５６７８９', '0123456789')
+        month = month.translate(zen_to_han)
         
         return f'令和{year}年{month}月'
     except:
@@ -150,11 +186,28 @@ def get_all_sheet_names() -> List[tuple[str, str]]:
         try:
             xls = pd.ExcelFile(file_path)
             sheet_names = xls.sheet_names
+            
             # (表示用シート名, "ファイル識別子:シート名")の形式で保存
-            all_sheets.extend([
-                (convert_to_readable_date(name), f"{year}:{name}")
-                for name in sheet_names
-            ])
+            for name in sheet_names:
+                # R4ファイルのR3.5.1を表示上R4.5.1として扱う
+                display_name = 'R4.5.1' if (year == 'R4' and name == 'R3.5.1') else name
+                
+                # R4.3.1より前のデータは除外（データのフォーマットが違うため
+                try:
+                    sheet_year = int(display_name[1:].split('.')[0])
+                    sheet_month = int(display_name.split('.')[1])
+                    
+                    if sheet_year < 4 or (sheet_year == 4 and sheet_month <= 3):
+                        continue
+                    
+                    all_sheets.append((
+                        convert_to_readable_date(display_name),
+                        f"{year}:{display_name}"
+                    ))
+                except:
+                    # 日付の解析に失敗した場合はスキップ
+                    continue
+                
         except Exception as e:
             st.error(f'{file_path}の読み込みに失敗しました: {str(e)}')
     
