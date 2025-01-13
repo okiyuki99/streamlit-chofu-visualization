@@ -1,10 +1,10 @@
 import streamlit as st
 
 from utils.data_loader import (
-    load_data, get_sheet_names, load_school_data
+    load_data, load_school_data, get_all_sheet_names
 )
 from utils.constants import (
-    CHOUFU_POPULATION_DATA_FILE_PATH, SCHOOL_DATA_PATH,
+    POPULATION_DATA_FILES, SCHOOL_DATA_PATH,
     CENTER_LAT, CENTER_LON, STATIONS
 )
 from utils.map_components import (
@@ -39,16 +39,16 @@ with st.sidebar:
     
     # 年代選択
     with st.expander('📅 年代の選択', expanded=True):
-        sheet_names = get_sheet_names(CHOUFU_POPULATION_DATA_FILE_PATH)
-        display_names, actual_names = zip(*sheet_names)  # タプルのリストを2つのリストに分解
+        sheet_names = get_all_sheet_names()
+        display_names, sheet_infos = zip(*sheet_names)
         
         selected_display = st.selectbox(
             "表示する年代を選択してください",
             display_names,
             index=0
         )
-        # 表示用の名前から実際のシート名を取得
-        selected_sheet = actual_names[display_names.index(selected_display)]
+        # 表示用の名前から実際のシート情報を取得
+        selected_sheet = sheet_infos[display_names.index(selected_display)]
     
     # 学校表示設定
     with st.expander('🏫 学校の表示設定', expanded=True):
@@ -72,7 +72,7 @@ with st.sidebar:
         )
 
 # データの読み込みと地図の作成
-merged_df = load_data(file_path=CHOUFU_POPULATION_DATA_FILE_PATH, sheet_name=selected_sheet)
+merged_df = load_data(selected_sheet)  # sheet_nameではなくsheet_infoを渡す
 map = create_base_map(CENTER_LAT, CENTER_LON)
 
 # 地図コンポーネントの追加

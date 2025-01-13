@@ -3,6 +3,7 @@ import pandas as pd
 import geopandas as gpd
 from pathlib import Path
 from typing import Union, List, Dict
+from utils.constants import POPULATION_DATA_FILES
 
 # 定数定義
 class DataPaths:
@@ -20,8 +21,16 @@ class ColumnNames:
     LATITUDE = '緯度'
     LONGITUDE = '経度'
 
-def load_data(file_path: Union[str, Path], sheet_name: Union[str, int] = 0) -> gpd.GeoDataFrame:
-    """GeoJSONデータと人口データを読み込み、マージしたデータフレームを返す"""
+def load_data(sheet_info: str) -> gpd.GeoDataFrame:
+    """GeoJSONデータと人口データを読み込み、マージしたデータフレームを返す
+    
+    Args:
+        sheet_info: "年度:シート名" の形式の文字列（例: "R6:R6.12.1"）
+    """
+    # ファイル識別子とシート名を分離
+    year, sheet_name = sheet_info.split(':')
+    file_path = POPULATION_DATA_FILES[year]
+    
     # GeoJSONから調布の市区町村データの読み込み
     jp_geo_df = gpd.read_file(DataPaths.GEOJSON_PATH)
 
@@ -129,18 +138,39 @@ def convert_to_readable_date(sheet_name: str) -> str:
     except:
         return sheet_name
 
-def get_sheet_names(file_path: Union[str, Path]) -> List[tuple[str, str]]:
-    """Excelファイルのシート名を取得する
+def get_all_sheet_names() -> List[tuple[str, str]]:
+    """全ての利用可能なシート名を取得する
     
     Returns:
-        List[tuple[str, str]]: (表示用シート名, 実際のシート名)のリスト
+        List[tuple[str, str]]: (表示用シート名, 実際のシート名とファイルの組み合わせ)のリスト
     """
-    xls = pd.ExcelFile(file_path)
-    sheet_names = xls.sheet_names
-    sheet_names.reverse()
+    all_sheets = []
     
-    # (表示用シート名, 実際のシート名)のタプルのリストを作成
-    return [(convert_to_readable_date(name), name) for name in sheet_names]
+    for year, file_path in POPULATION_DATA_FILES.items():
+        try:
+            xls = pd.ExcelFile(file_path)
+            sheet_names = xls.sheet_names
+            # (表示用シート名, "ファイル識別子:シート名")の形式で保存
+            all_sheets.extend([
+                (convert_to_readable_date(name), f"{year}:{name}")
+                for name in sheet_names
+            ])
+        except Exception as e:
+            st.error(f'{file_path}の読み込みに失敗しました: {str(e)}')
+    
+    # シート名から年月を抽出してソート用のキーを作成
+    def sort_key(sheet_tuple):
+        sheet_name = sheet_tuple[1].split(':')[1]  # "R6:R6.12.1" から "R6.12.1" を取得
+        try:
+            year = int(sheet_name[1:].split('.')[0])  # "6" を取得
+            month = int(sheet_name.split('.')[1])     # "12" を取得
+            return (-year, -month)  # 降順にするためにマイナスをつける
+        except:
+            return (0, 0)  # 解析できない場合は最後に
+    
+    # 年月の降順でソート
+    all_sheets.sort(key=sort_key)
+    return all_sheets
 
 def load_school_data(file_path: str, school_type: str = None) -> pd.DataFrame:
     """学校データを読み込む"""

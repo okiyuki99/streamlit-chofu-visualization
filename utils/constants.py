@@ -1,7 +1,11 @@
 from pathlib import Path
 
-# データファイルのパス
-CHOUFU_POPULATION_DATA_FILE_PATH = 'data/choufushi_open_data_chouchoubetu1201.xlsx'
+# データファイルのパスを更新
+POPULATION_DATA_FILES = {
+    'R6': 'data/choufushi_open_data_chouchoubetu1201.xlsx',  # 令和6年のデータ
+    'R5': 'data/choufushi_open_data_r5chouchoubetu.xlsx',    # 令和5年のデータ
+    'R4': 'data/choufushi_open_data_r4chouchoubetu.xlsx'     # 令和4年のデータを追加
+}
 SCHOOL_DATA_PATH = Path('data/choufushi_open_data_school.xls')
 
 # 地図の中心座標（佐須町二丁目）
