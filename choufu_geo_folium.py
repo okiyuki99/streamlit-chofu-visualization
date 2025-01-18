@@ -1,7 +1,8 @@
 import streamlit as st
 
 from utils.data_loader import (
-    load_data, load_school_data, get_all_sheet_names
+    load_data, load_school_data, get_all_sheet_names,
+    ColumnNames
 )
 from utils.constants import (
     POPULATION_DATA_FILES, SCHOOL_DATA_PATH,
@@ -72,7 +73,75 @@ with st.sidebar:
         )
 
 # データの読み込みと地図の作成
-merged_df = load_data(selected_sheet)  # sheet_nameではなくsheet_infoを渡す
+merged_df = load_data(selected_sheet)
+
+# 1年前のデータを取得
+try:
+    # 現在の年月を取得
+    current_year = int(selected_sheet.split(':')[1][1:].split('.')[0])  # "R6" から "6" を取得
+    current_month = int(selected_sheet.split(':')[1].split('.')[1])    # "12.1" から "12" を取得
+    
+    # 1年前のシート情報を探す
+    previous_year_info = None
+    for display_name, sheet_info in sheet_names:
+        year = int(sheet_info.split(':')[1][1:].split('.')[0])
+        month = int(sheet_info.split(':')[1].split('.')[1])
+        if year == current_year - 1 and month == current_month:
+            previous_year_info = sheet_info
+            break
+    
+    # 1年前のデータを読み込む
+    if previous_year_info:
+        previous_df = load_data(previous_year_info)
+    else:
+        previous_df = None
+except:
+    previous_df = None
+
+# メトリクスの計算と表示
+col1, col2, col3, col4 = st.columns(4)
+
+# 人口総数
+total_population = merged_df[ColumnNames.POPULATION].sum()
+previous_population = previous_df[ColumnNames.POPULATION].sum() if previous_df is not None else None
+with col1:
+    st.metric(
+        label="総人口",
+        value=f"{int(total_population):,}人",
+        delta=f"1年前から{int(total_population - previous_population):+,}人" if previous_population is not None else None
+    )
+
+# 世帯総数
+total_households = merged_df[ColumnNames.HOUSEHOLDS].sum()
+previous_households = previous_df[ColumnNames.HOUSEHOLDS].sum() if previous_df is not None else None
+with col2:
+    st.metric(
+        label="総世帯数",
+        value=f"{int(total_households):,}世帯",
+        delta=f"1年前から{int(total_households - previous_households):+,}世帯" if previous_households is not None else None
+    )
+
+# 男性総数
+total_male = merged_df[ColumnNames.MALE].sum()
+previous_male = previous_df[ColumnNames.MALE].sum() if previous_df is not None else None
+with col3:
+    st.metric(
+        label="男性人口",
+        value=f"{int(total_male):,}人",
+        delta=f"1年前から{int(total_male - previous_male):+,}人" if previous_male is not None else None
+    )
+
+# 女性総数
+total_female = merged_df[ColumnNames.FEMALE].sum()
+previous_female = previous_df[ColumnNames.FEMALE].sum() if previous_df is not None else None
+with col4:
+    st.metric(
+        label="女性人口",
+        value=f"{int(total_female):,}人",
+        delta=f"1年前から{int(total_female - previous_female):+,}人" if previous_female is not None else None
+    )
+
+# 地図の作成と表示
 map = create_base_map(CENTER_LAT, CENTER_LON)
 
 # 地図コンポーネントの追加
