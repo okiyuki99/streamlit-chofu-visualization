@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import geopandas as gpd
+import json
 from pathlib import Path
 from typing import Union, List, Dict
 from utils.constants import POPULATION_DATA_FILES
@@ -8,7 +9,7 @@ from utils.constants import POPULATION_DATA_FILES
 # 定数定義
 class DataPaths:
     """データファイルのパスを管理するクラス"""
-    GEOJSON_PATH: str = 'data/r2ka13208.geojson'
+    TOPOJSON_PATH: str = 'data/r2ka13208.topojson'  # GeoJSONからTopoJSONに変更
 
 class ColumnNames:
     """カラム名の定数を管理するクラス"""
@@ -22,7 +23,7 @@ class ColumnNames:
     LONGITUDE = '経度'
 
 def load_data(sheet_info: str) -> gpd.GeoDataFrame:
-    """GeoJSONデータと人口データを読み込み、マージしたデータフレームを返す
+    """TopoJSONデータと人口データを読み込み、マージしたデータフレームを返す
     
     Args:
         sheet_info: "年度:シート名" の形式の文字列（例: "R6:R6.12.1"）
@@ -35,21 +36,34 @@ def load_data(sheet_info: str) -> gpd.GeoDataFrame:
     if year == 'R4' and sheet_name == 'R4.5.1':
         sheet_name = 'R3.5.1'
     
-    # GeoJSONから調布の市区町村データの読み込み
-    jp_geo_df = gpd.read_file(DataPaths.GEOJSON_PATH)
+    try:
+        # TopoJSONファイルを直接GeoDataFrameとして読み込む（townレイヤーを指定）
+        jp_geo_df = gpd.read_file(DataPaths.TOPOJSON_PATH, layer='town')
+        
+        # CRSを明示的に設定（世界測地系）
+        if jp_geo_df.crs is None:
+            jp_geo_df.set_crs(epsg=4326, inplace=True)
+        
+        # Excelファイルから調布市の町別の人口データを読み込み
+        chofu_df = read_choufu_population_excel_sheet(file_path, sheet_name)
 
-    # Excelファイルから調布市の町別の人口データを読み込み
-    chofu_df = read_choufu_population_excel_sheet(file_path, sheet_name)
-
-    # GeoDataFrameとデータフレームをマージ
-    merged_df = pd.merge(
-        jp_geo_df,
-        chofu_df,
-        left_on='S_NAME',
-        right_on=ColumnNames.ADDRESS,
-        how='left'
-    )
-    return merged_df
+        # GeoDataFrameとデータフレームをマージ
+        merged_df = pd.merge(
+            jp_geo_df,
+            chofu_df,
+            left_on='S_NAME',
+            right_on=ColumnNames.ADDRESS,
+            how='left'
+        )
+        
+        # マージ後のGeoDataFrameにもCRSを設定
+        merged_df.set_crs(epsg=4326, inplace=True)
+        
+        return merged_df
+        
+    except Exception as e:
+        st.error(f'データの読み込みに失敗しました: {str(e)}')
+        raise e
 
 def read_choufu_population_excel_sheet(
     file_path: Union[str, Path],
