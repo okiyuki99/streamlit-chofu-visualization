@@ -1,4 +1,9 @@
 import streamlit as st
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from datetime import datetime
+import numpy as np
 
 from utils.data_loader import (
     load_data, load_school_data, get_all_sheet_names,
@@ -16,7 +21,7 @@ from streamlit_folium import st_folium
 
 # Streamlitのセットアップ
 st.set_page_config(
-    page_title="調布市の人口ヒートマップ",
+    page_title="調布市の人口数の可視化サイト",
     page_icon="🗾",
     layout="wide"
 )
@@ -31,7 +36,7 @@ st.markdown("""
 st.markdown("""
 # 調布市の人口ヒートマップ
 
-オープンデータをもとにした調布市の市区町村別の人口をヒートマップで可視化したアプリケーションです
+オープンデータをもとにした調布市の市区町村別の人口をヒートマップで可視化しています
 """)
 
 # 設定パネルの作成
@@ -171,6 +176,132 @@ if show_station:
 
 # 地図の表示
 st_folium(map, use_container_width=True, height=800, returned_objects=[])
+
+# 時系列データの準備
+def get_population_history():
+    """令和4年4月から最新までの人口データを取得"""
+    history_data = []
+    
+    for display_name, sheet_info in sheet_names:
+        year = int(sheet_info.split(':')[1][1:].split('.')[0])
+        month = int(sheet_info.split(':')[1].split('.')[1])
+        
+        # R4.4.1以降のデータのみを使用
+        if year < 4 or (year == 4 and month < 4):
+            continue
+            
+        df = load_data(sheet_info)
+        
+        # 各地域の人口データを取得
+        for _, row in df.iterrows():
+            if not pd.isna(row[ColumnNames.POPULATION]) and not pd.isna(row['S_NAME']):
+                history_data.append({
+                    '年月': f'令和{year}年{month}月',
+                    '地域': row['S_NAME'],
+                    '人口': row[ColumnNames.POPULATION]
+                })
+        
+        # 全人口のデータを追加
+        total = df[ColumnNames.POPULATION].sum()
+        history_data.append({
+            '年月': f'令和{year}年{month}月',
+            '地域': '全人口',
+            '人口': total
+        })
+    
+    return pd.DataFrame(history_data)
+
+# 時系列データの取得
+history_df = get_population_history()
+
+# 地域選択のマルチセレクト
+st.markdown("""
+# 人口推移グラフ
+
+オープンデータをもとにした調布市の市区町村別の人口推移を時系列グラフで可視化しています
+""")
+
+# 利用可能な地域のリストを取得（全人口を先頭に）
+available_areas = ['全人口'] + sorted(
+    [area for area in history_df['地域'].unique() if area != '全人口']
+)
+
+# デフォルトで全人口を選択
+selected_areas = st.multiselect(
+    '表示する地域を選択',
+    available_areas,
+    default=['全人口']
+)
+
+# グラフタイプの選択
+graph_type = st.radio(
+    'グラフの種類を選択',
+    ['線グラフ', '棒グラフ'],
+    horizontal=True
+)
+
+if selected_areas:
+    # 選択された地域のデータでグラフを作成
+    fig = go.Figure()
+    
+    for area in selected_areas:
+        # データのコピーを作成
+        area_data = history_df[history_df['地域'] == area].copy()
+        
+        # 年月を日付型に変換してソート
+        def convert_to_date(x):
+            # 令和から数字を抽出
+            year = int(x.replace('令和', '').split('年')[0])
+            # 月を抽出
+            month = int(x.split('年')[1].replace('月', ''))
+            # 令和を西暦に変換（令和1年 = 2019年）
+            year = year + 2018
+            return pd.to_datetime(f'{year}-{month:02d}-01')
+            
+        area_data.loc[:, 'date'] = area_data['年月'].apply(convert_to_date)
+        area_data = area_data.sort_values('date')
+        
+        if graph_type == '線グラフ':
+            fig.add_trace(go.Scatter(
+                x=area_data['年月'],
+                y=area_data['人口'],
+                name=area,
+                mode='lines+markers',
+                hovertemplate='%{x}<br>%{y:,}人<extra></extra>'
+            ))
+        else:  # 棒グラフ
+            fig.add_trace(go.Bar(
+                x=area_data['年月'],
+                y=area_data['人口'],
+                name=area,
+                hovertemplate='%{x}<br>%{y:,}人<extra></extra>'
+            ))
+    
+    # グラフのレイアウト設定
+    fig.update_layout(
+        title='人口推移',
+        xaxis_title='年月',
+        yaxis_title='人口数',
+        height=600,
+        hovermode='x unified',
+        yaxis=dict(
+            title='人口数',
+            tickformat=',d',
+            autorange=True  # 縦軸を動的に設定
+        ),
+        showlegend=True,
+        legend=dict(
+            yanchor="top",
+            y=0.99,
+            xanchor="left",
+            x=0.01
+        )
+    )
+    
+    # グラフの表示
+    st.plotly_chart(fig, use_container_width=True)
+else:
+    st.warning('地域を選択してください')
 
 # 利用データについてのmarkdown
 st.markdown("""
