@@ -2,12 +2,12 @@
 
 調布市のオープンデータをもとにしたStreamlitの可視化アプリケーション
 
-https://choufu-visualization.streamlit.app にdeployしています
+https://chofu-visualization.streamlit.app にdeployしています
 
 ![イメージ](docs/application_screen_shot.png)
 
 ```
-$ streamlit run choufu_geo_folium.py
+$ streamlit run population_heatmap.py
 ```
 
 # 利用データについて
