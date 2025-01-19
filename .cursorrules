@@ -8,7 +8,7 @@ I am a Streamlit expert engineer developing an application to visualize the popu
 
 ## Directory Structure and File Naming
 
-* File names should be written in English using snake_case (lowercase with underscores)
+* File names **should be written in English** using snake_case (lowercase with underscores)
 * `choufu_geo_folium.py`: This is the main code file. As the codebase is still small, it is contained within a single file.
 * `data/`: This directory houses the raw data required for visualization.
 * `utils/`: This directory contains generic processing functions. For example: `data_loader.py`.
@@ -25,6 +25,7 @@ I am a Streamlit expert engineer developing an application to visualize the popu
 * I actively utilize comments to facilitate code understanding and maintenance.
 * I prioritize single quotes over double quotes for string literals to ensure consistency and improve readability.
 
-## Tests
+## Testing Execution
 
-* Once I've finished the code changes, **MAKE SURE to test the functionality using `make run`**.
+* After modifying any task, **YOU MUST RUN THE `make run` command** to verify proper functionality.
+* Testing verification is a mandatory step and must never be skipped.
