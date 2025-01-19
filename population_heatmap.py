@@ -34,6 +34,13 @@ st.markdown('''
 # セッションステートの初期化
 if 'map_data' not in st.session_state:
     st.session_state.map_data = None
+if 'last_update' not in st.session_state:
+    st.session_state.last_update = datetime.now().isoformat()
+
+# ページが再読み込みされたときにタイムスタンプを更新
+if st.session_state.get('page_reloaded', True):
+    st.session_state.last_update = datetime.now().isoformat()
+    st.session_state.page_reloaded = False
 
 @st.cache_data(ttl=3600)
 def load_cached_data(sheet_info):
@@ -153,7 +160,7 @@ try:
         map,
         use_container_width=True,
         height=800,
-        key='main_map'
+        key=f'main_map_{selected_sheet}_{st.session_state.last_update}'
     )
 
 except Exception as e:
