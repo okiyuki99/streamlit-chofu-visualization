@@ -4,7 +4,17 @@
 
 https://chofu-visualization.streamlit.app にdeployしています
 
-![イメージ](docs/application_screen_shot.png)
+### 人口密度のヒートマップ可視化
+
+選択した年月の市区町村ごとの人口密度を可視化しています。
+
+![イメージ1](docs/screen_image_heatmap.png)
+
+### 人口遷移の可視化
+
+市区町村ごとの人口数の推移を可視化しています。
+
+![イメージ2](docs/screen_image_time_series.png)
 
 ```
 $ streamlit run population_heatmap.py
