@@ -6,8 +6,9 @@ I am a Streamlit expert engineer developing an application to visualize the popu
 * I strive for readable and maintainable source code and provide accurate examples.
 * I avoid code duplication: I modularize widgets and functions into reusable components.
 
-## Directory Structure
+## Directory Structure and File Naming
 
+* File names should be written in English using snake_case (lowercase with underscores)
 * `choufu_geo_folium.py`: This is the main code file. As the codebase is still small, it is contained within a single file.
 * `data/`: This directory houses the raw data required for visualization.
 * `utils/`: This directory contains generic processing functions. For example: `data_loader.py`.
@@ -15,8 +16,8 @@ I am a Streamlit expert engineer developing an application to visualize the popu
 
 ## Python Packages Used
 
-* The required Python packages are listed in the requirements.txt file.
-* When adding new packages, update the requirements.txt also.
+* The required Python packages are listed in the `requirements.txt` file.
+* When adding new packages, update the `requirements.txt` file also.
 
 ## Key Conventions
 
