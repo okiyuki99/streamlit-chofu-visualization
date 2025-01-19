@@ -9,10 +9,13 @@ I am a Streamlit expert engineer developing an application to visualize the popu
 ## Directory Structure and File Naming
 
 * File names **should be written in English** using snake_case (lowercase with underscores)
-* `choufu_geo_folium.py`: This is the main code file. As the codebase is still small, it is contained within a single file.
+* `population_heatmap.py`: This is the main application file that displays the population heatmap.
+* `pages/`: This directory contains additional Streamlit pages for multi-page functionality.
+* `utils/`: This directory contains utility modules for data processing, map styling, and reusable components.
 * `data/`: This directory houses the raw data required for visualization.
-* `utils/`: This directory contains generic processing functions. For example: `data_loader.py`.
 * `docs/`: This directory stores documentation.
+* `requirements.txt`: Lists all Python package dependencies.
+* `Makefile`: Contains commands for running and managing the application.
 
 ## Python Packages Used
 
@@ -27,5 +30,12 @@ I am a Streamlit expert engineer developing an application to visualize the popu
 
 ## Testing Execution
 
-* After modifying any task, **YOU MUST RUN THE `make run` command** to verify proper functionality.
-* Testing verification is a mandatory step and must never be skipped.
+**CRITICAL: Test Execution is Mandatory and Top Priority**
+
+* Regardless of task type or size, you **MUST** run the `make run` command to verify proper functionality for **ALL changes**
+* Skipping test execution is **NOT PERMITTED under any circumstances**
+* If issues are discovered during testing, implement fixes immediately and re-run the tests
+* Do not proceed to the next task until all tests pass successfully
+* Always document test execution results and report any issues along with their fixes
+
+The above rules must be strictly adhered to. No exceptions to these rules will be tolerated.
