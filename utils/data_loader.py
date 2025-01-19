@@ -37,12 +37,18 @@ def load_data(sheet_info: str) -> gpd.GeoDataFrame:
         sheet_name = 'R3.5.1'
     
     try:
-        # TopoJSONファイルを直接GeoDataFrameとして読み込む（townレイヤーを指定）
+        # TopoJSONファイルの存在確認
+        if not Path(DataPaths.TOPOJSON_PATH).exists():
+            raise FileNotFoundError(f'TopoJSONファイルが見つかりません: {DataPaths.TOPOJSON_PATH}')
+        
+        # TopoJSONファイルを直接GeoDataFrameとして読み込む
         jp_geo_df = gpd.read_file(DataPaths.TOPOJSON_PATH, layer='town')
         
         # CRSを明示的に設定（世界測地系）
         if jp_geo_df.crs is None:
-            jp_geo_df.set_crs(epsg=4326, inplace=True)
+            jp_geo_df = jp_geo_df.set_crs('EPSG:4326')
+        elif jp_geo_df.crs.to_epsg() != 4326:
+            jp_geo_df = jp_geo_df.to_crs('EPSG:4326')
         
         # Excelファイルから調布市の町別の人口データを読み込み
         chofu_df = read_choufu_population_excel_sheet(file_path, sheet_name)
@@ -57,12 +63,23 @@ def load_data(sheet_info: str) -> gpd.GeoDataFrame:
         )
         
         # マージ後のGeoDataFrameにもCRSを設定
-        merged_df.set_crs(epsg=4326, inplace=True)
+        if merged_df.crs is None:
+            merged_df = merged_df.set_crs('EPSG:4326')
+        else:
+            merged_df = merged_df.to_crs('EPSG:4326')
+        
+        # NaN値を0で埋める
+        numeric_columns = [ColumnNames.MALE, ColumnNames.FEMALE, ColumnNames.POPULATION, ColumnNames.HOUSEHOLDS]
+        merged_df[numeric_columns] = merged_df[numeric_columns].fillna(0)
         
         return merged_df
         
+    except FileNotFoundError as e:
+        st.error(str(e))
+        raise e
     except Exception as e:
         st.error(f'データの読み込みに失敗しました: {str(e)}')
+        st.write('エラーの詳細:', str(e))  # より詳細なエラー情報を表示
         raise e
 
 def read_choufu_population_excel_sheet(

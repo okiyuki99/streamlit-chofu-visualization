@@ -1,2 +1,2 @@
 run:
-	streamlit run choufu_geo_folium.py
+	streamlit run population_heatmap.py
