@@ -15,13 +15,22 @@ st.set_page_config(
     layout="wide"
 )
 
+# セッションステートの初期化
+if 'is_time_series_active' not in st.session_state:
+    st.session_state.is_time_series_active = False
+
+# 現在のページがアクティブかどうかを確認
+if not st.session_state.is_time_series_active:
+    st.session_state.is_time_series_active = True
+    st.rerun()
+
 st.markdown("""
 # 調布市の人口推移グラフ
 
 オープンデータをもとにした調布市の市区町村別の人口推移を時系列グラフで可視化しています
 """)
 
-# 時系列データの準備
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_population_history():
     """令和4年4月から最新までの人口データを取得"""
     history_data = []
@@ -56,8 +65,10 @@ def get_population_history():
     
     return pd.DataFrame(history_data)
 
-# 時系列データの取得
-history_df = get_population_history()
+# プログレスバーを表示してデータ読み込みを視覚化
+with st.spinner('データを読み込んでいます...'):
+    # 時系列データの取得
+    history_df = get_population_history()
 
 # サイドバーの設定
 with st.sidebar:

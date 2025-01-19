@@ -24,6 +24,10 @@ st.set_page_config(
     layout="wide"
 )
 
+# セッションステートの初期化
+if 'is_time_series_active' in st.session_state:
+    st.session_state.is_time_series_active = False
+
 # ブラウザキャッシュの無効化
 st.markdown('''
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -120,43 +124,45 @@ with st.sidebar:
 
 # データの読み込みと表示
 try:
-    # データの読み込み
-    merged_df = load_cached_data(selected_sheet)
-    previous_df = get_previous_year_data(selected_sheet, sheet_names)
-    
-    # メトリクスの表示
-    display_metrics(merged_df, previous_df)
-    
-    # 地図の作成と表示
-    map = create_base_map(CENTER_LAT, CENTER_LON)
-    
-    # 地図コンポーネントの追加
-    add_center_label(map, CENTER_LAT, CENTER_LON, '佐須町二丁目')
-    add_choropleth(map, merged_df, ["住所", "人口数"])
-    add_tooltips(map, merged_df)
-    add_area_labels(map, merged_df)
+    # プログレスバーを表示してデータ読み込みを視覚化
+    with st.spinner('データを読み込んでいます...'):
+        # データの読み込み
+        merged_df = load_cached_data(selected_sheet)
+        previous_df = get_previous_year_data(selected_sheet, sheet_names)
+        
+        # メトリクスの表示
+        display_metrics(merged_df, previous_df)
+        
+        # 地図の作成と表示
+        map = create_base_map(CENTER_LAT, CENTER_LON)
+        
+        # 地図コンポーネントの追加
+        add_center_label(map, CENTER_LAT, CENTER_LON, '佐須町二丁目')
+        add_choropleth(map, merged_df, ["住所", "人口数"])
+        add_tooltips(map, merged_df)
+        add_area_labels(map, merged_df)
 
-    # 学校マーカーの追加
-    if show_elementary_schools:
-        try:
-            elementary_df = load_cached_school_data(SCHOOL_DATA_PATH, '小学校')
-            add_school_markers(map, elementary_df, 'red')
-        except Exception as e:
-            st.error(f'小学校データの読み込みに失敗しました: {str(e)}')
+        # 学校マーカーの追加
+        if show_elementary_schools:
+            try:
+                elementary_df = load_cached_school_data(SCHOOL_DATA_PATH, '小学校')
+                add_school_markers(map, elementary_df, 'red')
+            except Exception as e:
+                st.error(f'小学校データの読み込みに失敗しました: {str(e)}')
 
-    if show_junior_high_schools:
-        try:
-            junior_high_df = load_cached_school_data(SCHOOL_DATA_PATH, '中学校')
-            add_school_markers(map, junior_high_df, 'blue')
-        except Exception as e:
-            st.error(f'中学校データの読み込みに失敗しました: {str(e)}')
+        if show_junior_high_schools:
+            try:
+                junior_high_df = load_cached_school_data(SCHOOL_DATA_PATH, '中学校')
+                add_school_markers(map, junior_high_df, 'blue')
+            except Exception as e:
+                st.error(f'中学校データの読み込みに失敗しました: {str(e)}')
 
-    # 駅マーカーの追加
-    if show_station:
-        add_station_marker(map)
+        # 駅マーカーの追加
+        if show_station:
+            add_station_marker(map)
 
     # 地図の表示
-    st.session_state.map_data = st_folium(
+    st_folium(
         map,
         use_container_width=True,
         height=800,
