@@ -1,2 +1,4 @@
+.PHONY: run
+
 run:
-	streamlit run population_heatmap.py
+	streamlit run main.py

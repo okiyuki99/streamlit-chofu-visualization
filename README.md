@@ -17,7 +17,7 @@ https://chofu-visualization.streamlit.app にdeployしています
 ![イメージ2](docs/screen_image_time_series.png)
 
 ```
-$ streamlit run population_heatmap.py
+$ streamlit run main.py
 ```
 
 # 利用データについて
