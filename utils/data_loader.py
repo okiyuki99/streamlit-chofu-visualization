@@ -320,3 +320,9 @@ def _check_school_data_missing_values(df: pd.DataFrame) -> None:
     ]
     if df[check_columns].isna().any().any():
         st.warning('一部の学校データに欠損値が含まれています')
+
+def load_population_data():
+    """人口データを読み込む関数"""
+    df = load_data()
+    # 必要なデータの整形や加工を行う
+    return df
