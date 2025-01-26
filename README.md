@@ -2,7 +2,7 @@
 
 調布市のオープンデータをもとにしたStreamlitの可視化アプリケーション
 
-https://chofu-visualization.streamlit.app にdeployしています
+https://chofu-population.streamlit.app/ にdeployしています
 
 ### 人口密度のヒートマップ可視化
 
